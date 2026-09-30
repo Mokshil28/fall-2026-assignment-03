@@ -5,6 +5,7 @@ import {
   Selectable,
   Insertable,
   Updateable,
+  ColumnType,
 } from 'kysely';
 import pg from 'pg';
 
@@ -32,7 +33,8 @@ export interface TimeLogsTable {
   id: Generated<number>;
   ticket_id: number;
   user_id: number;
-  hours: number;
+  // pg reads numeric columns as strings; writes accept JavaScript numbers.
+  hours: ColumnType<string, number, number>;
   logged_at: Generated<Date>;
 }
 
@@ -49,7 +51,10 @@ export type Ticket = Selectable<TicketsTable>;
 export type NewTicket = Insertable<TicketsTable>;
 export type TicketUpdate = Updateable<TicketsTable>;
 
-export type TimeLog = Selectable<TimeLogsTable>;
+// The DAL converts hours to a number before returning the row to API callers.
+export type TimeLog = Omit<Selectable<TimeLogsTable>, 'hours'> & {
+  hours: number;
+};
 export type NewTimeLog = Insertable<TimeLogsTable>;
 
 /**
